@@ -1,0 +1,17 @@
+{
+  "name": "appirio-tech-optimist",
+  "version": "0.0.0",
+  "description": "Model/Collection helpers",
+  "main": "./dist/main.js",
+  "authors": [
+    ""
+  ],
+  "license": "",
+  "dependencies": {
+    "angular": "1.4.x"
+  },
+  "ignore": [
+    "**/*",
+    "!dist/**/*"
+  ]
+}
