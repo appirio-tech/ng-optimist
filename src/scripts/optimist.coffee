@@ -6,145 +6,149 @@ Optimist = () ->
   # Helpers #
   ###########
 
-  noop = ->
-    # noop
+  metaTemplate =
+    pending: false
+    error: null
+    propsUpdated: {}
+    propsPending: {}
+    propsErrored: {}
 
-  wrapWithMeta = (model, meta) ->
-    metaTemplate =
-      pending: false
-      error: null
-      propsUpdated: {}
-      propsPending: {}
-      propsErrored: {}
+  Model = (options = {}) ->
+    data = options.data || {}
+    data = angular.copy data
+    meta = angular.copy metaTemplate
+    defaults =
+      updateCallback: options.updateCallback || angular.noop
+      propsToIgnore: options.propsToIgnore || []
 
-    metaToApply = meta || metaTemplate
+    clearErrors = ->
+      meta.error        = null
+      meta.propsErrored = {}
 
-    unless model.o
-      model.o = metaToApply
+    applyProps = (options = {}) ->
+      source  = options.source || []
+      include = options.include || []
+      ignore =  options.ignore || []
 
-  stripMeta = (model) ->
-    meta = model.o
+      if include.length == 0
+        includeAll = true
 
-    if model.o
-      delete model.o
+      for name, prop of source
+        enumerable = source.propertyIsEnumerable(name)
+        included = include.indexOf(name) >= 0
+        ignored = ignore.indexOf(name) >= 0
 
-    meta
+        if (includeAll || included) && enumerable && !ignored
+          data[name] = prop
 
-  fetchOne = (options) ->
-    model                = options.model || {}
-    updates              = options.updates || []
-    apiCall              = options.apiCall || noop
-    updateCallback       = options.updateCallback || noop
-    handleResponse       = options.handleResponse != false
-    clearErrorsOnSuccess = options.clearErrorsOnSuccess != false
+    timestamp = ->
+      now              = new Date()
+      meta.lastUpdated = now.toISOString()
 
-    wrapWithMeta(model)
+    @hasPending = ->
+      meta.pending || meta.propsPending.keys
 
-    model.o.pending = true
+    @get = ->
+      snapshot = angular.copy data
+      snapshot.o = angular.copy meta
 
-    # This callback should be non-blocking and update your app state
-    updateCallback(model)
+      snapshot
 
-    # Should return a promise for a server update
-    request = apiCall()
+    @fetch = (options = {}) ->
+      apiCall              = options.apiCall || angular.noop
+      updateCallback       = options.updateCallback || defaults.updateCallback
+      handleResponse       = options.handleResponse != false
+      clearErrorsOnSuccess = options.clearErrorsOnSuccess != false
+      propsToIgnore        = options.propsToIgnore || defaults.propsToIgnore
 
-    request.then (response) ->
-      now                 = new Date()
-      model.o.lastUpdated = now.toISOString()
+      meta.pending = true
 
-      if clearErrorsOnSuccess
-        model.o.error = null
+      # This callback should be non-blocking and update your app state
+      updateCallback(data)
 
-      for name, prop of response
-        if response.propertyIsEnumerable(name)
-          model[name] = prop
+      # Should return a promise for a server update
+      request = apiCall()
 
-      if model.$promise
-        delete model.$promise
+      request.then (response) ->
+        timestamp()
 
-      if model.$resolved
-        delete model.$resolved
+        if clearErrorsOnSuccess
+          clearErrors()
 
-      response
+        if handleResponse
+          applyProps
+            source: response
+            ignore: propsToIgnore
 
-    request.catch (err) ->
-      model.o.error = err
+        response
 
-    request.finally () ->
-      model.o.pending = false
-      updateCallback(model)
+      request.catch (err) ->
+        meta.error = err
 
-  updateLocal = (options) ->
-    model                = options.model || {}
-    updates              = options.updates || []
-    updateCallback       = options.updateCallback || noop
+      request.finally () ->
+        meta.pending = false
+        updateCallback(data)
 
-    wrapWithMeta(model)
+    @updateLocal = (options = {}) ->
+      updates        = options.updates || []
+      updateCallback = options.updateCallback || defaults.updateCallback
 
-    for name, prop of updates
-      model[name] = prop
+      applyProps
+        source: updates
 
-    updateCallback(model)
+      updateCallback(data)
 
-  restore = (options) ->
-    # TODO: Fill out this function
+    @restore = ->
+      # TODO: Fill out this function
 
-  update = (options) ->
-    updateLocal(options)
-    save(options)
+    @update = (options = {}) ->
+      @updateLocal(options)
+      @save(options)
 
-  save = (options) ->
-    model                = options.model || {}
-    updates              = options.updates
-    apiCall              = options.apiCall || noop
-    updateCallback       = options.updateCallback || noop
-    handleResponse       = options.handleResponse != false
-    clearErrorsOnSuccess = options.clearErrorsOnSuccess != false
-    rollbackOnFailure    = options.rollbackOnFailure || false
+    @save = (options = {}) ->
+      updates              = options.updates
+      apiCall              = options.apiCall || angular.noop
+      updateCallback       = options.updateCallback || defaults.updateCallback
+      handleResponse       = options.handleResponse != false
+      clearErrorsOnSuccess = options.clearErrorsOnSuccess != false
+      rollbackOnFailure    = options.rollbackOnFailure || false
 
-    meta    = stripMeta(model)
-    request = apiCall(angular.copy model)
-    wrapWithMeta(model, meta)
+      request = apiCall data
 
-    for name, prop of updates
-      model.o.propsPending[name] = true
+      for name, prop of updates
+        meta.propsPending[name] = true
 
-    # This callback should be non-blocking and update your app state
-    updateCallback(model)
+      # This callback should be non-blocking and update your app state
+      updateCallback(data)
 
-    request.then (response) ->
-      now                 = new Date()
-      model.o.lastUpdated = now.toISOString()
+      request.then (response) ->
+        timestamp()
 
-      if clearErrorsOnSuccess
-        model.o.propsErrored = {}
+        if clearErrorsOnSuccess
+          clearErrors()
 
-      if handleResponse
+        if handleResponse
+          applyProps
+            source: response
+            include: Object.keys updates
+
+      request.catch (err) ->
+        if rollbackOnFailure
+          @restore(options)
+
         for name, prop of updates
-          model[name] = response[name]
+          meta.propsErrored[name] = err
 
-    request.catch (err) ->
-      if rollbackOnFailure
-        restore(options)
+      request.finally () ->
+        for name, prop of updates
+          delete meta.propsPending[name]
 
-      for name, prop of updates
-        model[name] = prop
-        model.o.errors[name] = err
+        updateCallback(data)
 
-    request.finally () ->
-      for name, prop of updates
-        delete model.o.pending[name]
+    @
 
-      updateCallback(model)
-
-  wrapWithMeta: wrapWithMeta
-  stripMeta   : stripMeta
-  fetchOne    : fetchOne
-  updateLocal : updateLocal
-  restore     : restore
-  update      : update
-  save        : save
+  Model: Model
 
 Optimist.$inject = ['$rootScope']
 
-angular.module('appirio-tech-ng-submit-work').factory 'Optimist', Optimist
+angular.module('appirio-tech-ng-optimist').factory 'Optimist', Optimist
