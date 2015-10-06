@@ -39,7 +39,7 @@ Optimist = () ->
         ignored = ignore.indexOf(name) >= 0
 
         if (includeAll || included) && enumerable && !ignored
-          data[name] = prop
+          data[name] = angular.copy(prop)
 
     timestamp = ->
       now              = new Date()
@@ -147,7 +147,72 @@ Optimist = () ->
 
     @
 
-  Model: Model
+  Collection = (options = {}) ->
+    collection = []
+    meta = angular.copy metaTemplate
+
+    defaults =
+      updateCallback: options.updateCallback || angular.noop
+      matchByProp: options.matchByProp || 'id'
+
+    timestamp = ->
+      now              = new Date()
+      meta.lastUpdated = now.toISOString()
+
+    clearErrors = ->
+      meta.error        = null
+      meta.propsErrored = {}
+
+    @get = ->
+      collection.map (item) ->
+        item.get()
+
+    @fetch = (options = {}) ->
+      apiCall              = options.apiCall || angular.noop
+      updateCallback       = options.updateCallback || defaults.updateCallback
+      clearErrorsOnSuccess = options.clearErrorsOnSuccess != false
+
+      meta.pending = true
+
+      # This callback should be non-blocking and update your app state
+      updateCallback(collection)
+
+      # Should return a promise for a server update
+      request = apiCall()
+
+      request.then (response) ->
+        timestamp()
+
+        if clearErrorsOnSuccess
+          clearErrors()
+
+        collection = response.map (item) ->
+          new Model
+            data: item
+
+        response
+
+      request.catch (err) ->
+        meta.error = err
+
+      request.finally () ->
+        meta.pending = false
+        updateCallback(collection)
+
+    @findWhere = (filters) ->
+      collection.filter (ref) ->
+        item = ref.get()
+
+        for name, value of filters
+          unless item[name] == value
+            return false
+
+        true
+
+    @
+
+  Model      : Model
+  Collection : Collection
 
 Optimist.$inject = ['$rootScope']
 
