@@ -13,7 +13,7 @@
   var Optimist;
 
   Optimist = function() {
-    var Model, metaTemplate;
+    var Collection, Model, metaTemplate;
     metaTemplate = {
       pending: false,
       error: null,
@@ -55,7 +55,7 @@
           included = include.indexOf(name) >= 0;
           ignored = ignore.indexOf(name) >= 0;
           if ((includeAll || included) && enumerable && !ignored) {
-            results.push(data[name] = prop);
+            results.push(data[name] = angular.copy(prop));
           } else {
             results.push(void 0);
           }
@@ -181,8 +181,80 @@
       };
       return this;
     };
+    Collection = function(options) {
+      var clearErrors, collection, defaults, meta, timestamp;
+      if (options == null) {
+        options = {};
+      }
+      collection = [];
+      meta = angular.copy(metaTemplate);
+      defaults = {
+        updateCallback: options.updateCallback || angular.noop,
+        matchByProp: options.matchByProp || 'id'
+      };
+      timestamp = function() {
+        var now;
+        now = new Date();
+        return meta.lastUpdated = now.toISOString();
+      };
+      clearErrors = function() {
+        meta.error = null;
+        return meta.propsErrored = {};
+      };
+      this.get = function() {
+        return collection.map(function(item) {
+          return item.get();
+        });
+      };
+      this.fetch = function(options) {
+        var apiCall, clearErrorsOnSuccess, request, updateCallback;
+        if (options == null) {
+          options = {};
+        }
+        apiCall = options.apiCall || angular.noop;
+        updateCallback = options.updateCallback || defaults.updateCallback;
+        clearErrorsOnSuccess = options.clearErrorsOnSuccess !== false;
+        meta.pending = true;
+        updateCallback(collection);
+        request = apiCall();
+        request.then(function(response) {
+          timestamp();
+          if (clearErrorsOnSuccess) {
+            clearErrors();
+          }
+          collection = response.map(function(item) {
+            return new Model({
+              data: item
+            });
+          });
+          return response;
+        });
+        request["catch"](function(err) {
+          return meta.error = err;
+        });
+        return request["finally"](function() {
+          meta.pending = false;
+          return updateCallback(collection);
+        });
+      };
+      this.findWhere = function(filters) {
+        return collection.filter(function(ref) {
+          var item, name, value;
+          item = ref.get();
+          for (name in filters) {
+            value = filters[name];
+            if (item[name] !== value) {
+              return false;
+            }
+          }
+          return true;
+        });
+      };
+      return this;
+    };
     return {
-      Model: Model
+      Model: Model,
+      Collection: Collection
     };
   };
 
