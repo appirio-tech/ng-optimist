@@ -8,17 +8,26 @@ OptimistCollection = (OptimistHelpers, OptimistModel) ->
 
   Collection.prototype.configure = (options) ->
     @_collection = []
+    @_meta = {}
     @_defaults =
       updateCallback: options.updateCallback || angular.noop
       matchByProp: options.matchByProp || 'id'
       propsToIgnore: options.propsToIgnore || []
 
   Collection.prototype.get = ->
-    @_collection
+    collection = @_collection.map (item) ->
+        item.get()
+
+    angular.merge collection, @_meta
+
+  Collection.prototype.getShallow = ->
+    collection = angular.copy @_collection
+
+    angular.merge collection, @_meta
 
   Collection.prototype.clearError = ->
-    if @_collection._error
-      delete @_collection._error
+    if @_meta._error
+      delete @_meta._error
 
   Collection.prototype.fetch = (options = {}) ->
     apiCall              = options.apiCall
@@ -26,14 +35,14 @@ OptimistCollection = (OptimistHelpers, OptimistModel) ->
     clearErrorsOnSuccess = options.clearErrorsOnSuccess != false
     propsToIgnore        = options.propsToIgnore || @_defaults.propsToIgnore
 
-    @_collection._pending = true
+    @_meta._pending = true
 
     updateCallback(@_collection)
 
     request = apiCall()
 
     request.then (response) =>
-      @_collection._lastUpdated = OptimistHelpers.timestamp()
+      @_meta._lastUpdated = OptimistHelpers.timestamp()
 
       if clearErrorsOnSuccess
         @clearError()
@@ -47,10 +56,10 @@ OptimistCollection = (OptimistHelpers, OptimistModel) ->
       response
 
     request.catch (err) =>
-      @_collection._error = err
+      @_meta._error = err
 
     request.finally () =>
-      @_collection.pending = false
+      @_meta._pending = false
       updateCallback(@_collection)
 
   Collection.prototype.findWhere = (filters) ->
@@ -62,6 +71,9 @@ OptimistCollection = (OptimistHelpers, OptimistModel) ->
           return false
 
       true
+
+  Collection.prototype.findOneWhere = (filters) ->
+    @findWhere(filters)[0]
 
   Collection
 
