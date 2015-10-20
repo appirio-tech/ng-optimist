@@ -46,8 +46,7 @@ describe 'Optimist', ->
 
       rootScope.$apply()
 
-      data = collection.get().map (item) ->
-        item.get()
+      data = collection.get()
 
       expect(data[0].a).to.equal 1
       expect(data[1].b).to.equal 2
@@ -85,7 +84,7 @@ describe 'Optimist', ->
       rootScope.$apply()
       data = collection.get()
 
-      expect(data._pending).to.be.undefined
+      expect(data._pending).to.be.false
 
     it 'should append an error message on api error', (done) ->
       collection.fetch
@@ -97,4 +96,29 @@ describe 'Optimist', ->
 
       expect(data._error).to.equal 'error'
       done()
+
+  describe 'findWhere', ->
+    beforeEach ->
+      collection.fetch
+        apiCall: apiSpy
+
+      rootScope.$apply()
+      
+    it 'should initialize an empty collection', ->
+      results = collection.findWhere(b: 2)
+
+      expect(results.length).to.equal 1
+      expect(results[0]).to.equal collection._collection[1]
+
+  describe 'findOneWhere', ->
+    beforeEach ->
+      collection.fetch
+        apiCall: apiSpy
+
+      rootScope.$apply()
+      
+    it 'should initialize an empty collection', ->
+      result = collection.findOneWhere(b: 2)
+
+      expect(result).to.equal collection._collection[1]
 

@@ -63,11 +63,11 @@ OptimistCollection = (OptimistHelpers, OptimistModel) ->
       updateCallback(@_collection)
 
   Collection.prototype.findWhere = (filters) ->
-    @_collection.filter (ref) ->
-      item = ref.get()
+    @_collection.filter (item) ->
+      itemData = item.get()
 
       for name, value of filters
-        unless item[name] == value
+        unless itemData[name] == value
           return false
 
       true
