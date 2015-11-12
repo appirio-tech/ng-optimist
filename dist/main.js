@@ -14,7 +14,7 @@
     hasProp = {}.hasOwnProperty;
 
   OptimistHelpers = function(options) {
-    var filter, isObject, mask, timestamp, walk;
+    var filter, flatWalkTandem, isObject, mask, merge, timestamp, walk;
     if (options == null) {
       options = {};
     }
@@ -72,12 +72,50 @@
       }
       return results;
     };
+    flatWalkTandem = function(target, source, action) {
+      var combinedKeys, name, results, sourceValue, targetValue, value;
+      combinedKeys = {};
+      for (name in target) {
+        if (!hasProp.call(target, name)) continue;
+        value = target[name];
+        combinedKeys[name] = true;
+      }
+      for (name in source) {
+        if (!hasProp.call(source, name)) continue;
+        value = source[name];
+        combinedKeys[name] = true;
+      }
+      results = [];
+      for (name in combinedKeys) {
+        if (!hasProp.call(combinedKeys, name)) continue;
+        value = combinedKeys[name];
+        targetValue = target[name];
+        sourceValue = source[name];
+        results.push(action(targetValue, sourceValue, name, target, source));
+      }
+      return results;
+    };
+    merge = function(target, source) {
+      var action, result;
+      result = {};
+      action = function(targetValue, sourceValue, name) {
+        if (isObject(targetValue) || isObject(sourceValue)) {
+          return result[name] = merge(targetValue || {}, sourceValue || {});
+        } else {
+          return result[name] = sourceValue === void 0 ? targetValue : sourceValue;
+        }
+      };
+      flatWalkTandem(target, source, action);
+      return result;
+    };
     return {
       timestamp: timestamp,
       isObject: isObject,
       mask: mask,
       filter: filter,
-      walk: walk
+      walk: walk,
+      flatWalkTandem: flatWalkTandem,
+      merge: merge
     };
   };
 
@@ -167,12 +205,12 @@
       })(this));
     };
     Collection.prototype.findWhere = function(filters) {
-      return this._collection.filter(function(ref) {
-        var item, name, value;
-        item = ref.get();
+      return this._collection.filter(function(item) {
+        var itemData, name, value;
+        itemData = item.get();
         for (name in filters) {
           value = filters[name];
-          if (item[name] !== value) {
+          if (itemData[name] !== value) {
             return false;
           }
         }
@@ -280,7 +318,7 @@
           }
         }
       });
-      angular.merge(this._data, updates);
+      this._data = OptimistHelpers.merge(this._data, updates);
       return updateCallback(this._data);
     };
     Model.prototype.fetch = function(options) {
