@@ -94,3 +94,74 @@ describe 'Optimist', ->
       helpers.walk nested, countAction
 
       expect(count).to.equal 6
+
+  describe 'flatWalkTandem', ->
+    count = 0
+
+    flatA =
+      a: 1
+      b: 1
+
+    flatB =
+      b: 1
+      c: 1
+
+    countAction = (targetValue, sourceValue, name, target, source) ->
+      count = count + 1
+
+    beforeEach ->
+      count = 0
+
+    it 'should call action once for each unique key', ->
+      helpers.flatWalkTandem flatA, flatB, countAction
+
+      expect(count).to.equal 3
+
+  describe 'extend', ->
+    result = null
+
+    flatA =
+      a: 1
+      b: 1
+
+    flatB =
+      b: 2
+      c: 2
+
+    nestedA =
+      a: 1
+      b: 1
+      subA:
+        a: 1
+      subB:
+        a: 1
+
+    nestedB =
+      b: 2
+      c: 2
+      subB:
+        a: 2
+      subC:
+        a: 2
+
+    beforeEach ->
+      result = {}
+
+    it 'should merge objects together', ->
+      result = helpers.merge flatA, flatB
+
+      expect(result.a).to.equal 1
+      expect(result.b).to.equal 2
+      expect(result.c).to.equal 2
+
+    it 'should recursively merge object properties', ->
+      result = helpers.merge nestedA, nestedB
+
+      console.log result
+
+      expect(result.a).to.equal 1
+      expect(result.b).to.equal 2
+      expect(result.c).to.equal 2
+      expect(result.subA.a).to.equal 1
+      expect(result.subB.a).to.equal 2
+      expect(result.subC.a).to.equal 2

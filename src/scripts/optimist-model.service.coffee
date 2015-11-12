@@ -73,7 +73,7 @@ OptimistModel = (OptimistHelpers) ->
         unless updateValues || restoreBackup
           delete collection[name]
 
-    angular.merge @_data, updates
+    @_data = OptimistHelpers.merge @_data, updates
 
     updateCallback(@_data)
 

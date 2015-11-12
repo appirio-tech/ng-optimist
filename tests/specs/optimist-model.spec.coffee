@@ -187,6 +187,25 @@ describe 'Optimist', ->
       expect(data.sub.sub.c).to.equal 3
       expect(data.sub.sub.c_pending).to.equal true
 
+    it 'should treat arrays as values', ->
+      model.set
+        updates:
+          a: [ 1, 2, 3]
+        updateValues: true
+
+      data = model.get()
+
+      expect(data.a.length).to.equal 3
+
+      model.set
+        updates:
+          a: []
+        updateValues: true
+
+      data = model.get()
+
+      expect(data.a.length).to.equal 0
+
   describe 'save', ->
     it 'should invoke apiCall with clean (no meta) model data', ->
       model.set

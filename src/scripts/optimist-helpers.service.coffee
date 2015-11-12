@@ -39,11 +39,41 @@ OptimistHelpers = (options = {}) ->
       else
         action value, name, collection
 
-  timestamp: timestamp
-  isObject: isObject
-  mask: mask
-  filter: filter
-  walk: walk
+  flatWalkTandem = (target, source, action) ->
+    combinedKeys = {}
+
+    for own name, value of target
+      combinedKeys[name] = true
+
+    for own name, value of source
+      combinedKeys[name] = true
+
+    for own name, value of combinedKeys
+      targetValue = target[name]
+      sourceValue = source[name]
+
+      action targetValue, sourceValue, name, target, source
+
+  merge = (target, source) ->
+    result = {}
+
+    action = (targetValue, sourceValue, name) ->
+      if isObject(targetValue) || isObject(sourceValue)
+        result[name] = merge (targetValue || {}), (sourceValue || {})
+      else
+        result[name] = if sourceValue == undefined then targetValue else sourceValue
+
+    flatWalkTandem target, source, action
+
+    result
+
+  timestamp      : timestamp
+  isObject       : isObject
+  mask           : mask
+  filter         : filter
+  walk           : walk
+  flatWalkTandem : flatWalkTandem
+  merge          : merge
 
 OptimistHelpers.$inject = ['$rootScope']
 
