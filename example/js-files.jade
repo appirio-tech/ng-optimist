@@ -1,45 +1,36 @@
-- var scripts  = []
-- var examples = []
+// - var scripts  = []
+// - var examples = []
 
-- examples.push('json-fixtures')
-- examples.push('../bower_components/sinon/index')
-- examples.push('../bower_components/auto-config-fake-server/dist/auto-config-fake-server')
-- examples.push('mock')
-- examples.push('constants')
-- examples.push('example.module')
-- examples.push('example-templates')
-- examples.push('routes')
+// - var bowers   = []
 
-- var bowers   = []
+// - scripts.push('optimist.module')
+// - scripts.push('optimist-helpers.service')
+// - scripts.push('optimist-collection.service')
+// - scripts.push('optimist-model.service')
 
-- scripts.push('optimist.module')
-- scripts.push('optimist-helpers.service')
-- scripts.push('optimist-collection.service')
-- scripts.push('optimist-model.service')
+// - bowers.push('angular/angular')
 
-- bowers.push('angular/angular')
+// = "\n"
+// // build:js lib.js
+// = "\n"
+// each path in bowers
+//   script(src="bower_components/#{path}.js", type="text/javascript")
+//   = "\n"
+// // endbuild
+// = "\n"
 
-= "\n"
-// build:js lib.js
-= "\n"
-each path in bowers
-  script(src="bower_components/#{path}.js", type="text/javascript")
-  = "\n"
-// endbuild
-= "\n"
+// // build:js main.js
+// = "\n"
+// each path in scripts
+//   script(src="scripts/#{path}.js", type="text/javascript")
+//   = "\n"
+// // endbuild
+// = "\n"
 
-// build:js main.js
-= "\n"
-each path in scripts
-  script(src="scripts/#{path}.js", type="text/javascript")
-  = "\n"
-// endbuild
-= "\n"
-
-// build:js example.js
-= "\n"
-each path in examples
-  script(src="scripts/#{path}.js", type="text/javascript")
-  = "\n"
-// endbuild
-= "\n"
+// // build:js example.js
+// = "\n"
+// each path in examples
+//   script(src="scripts/#{path}.js", type="text/javascript")
+//   = "\n"
+// // endbuild
+// = "\n"
