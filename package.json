@@ -1,8 +1,16 @@
 {
   "name": "appirio-tech-ng-optimist",
+  "version": "1.0.0",
+  "main": "./src/src.coffee",
   "devDependencies": {
-    "appirio-work-styles": "0.x.x",
-    "appirio-gulp-tasks": "3.x.x",
-    "gulp": "^3.8.11"
+    "appirio-tech-webpack-config": "0.x.x"
+  },
+  "scripts": {
+    "dev": "webpack-dev-server -d --colors",
+    "clean": "rm -r dist",
+    "build": "webpack --config webpack.config.js; cp example/index.html dist/"
+  },
+  "dependencies": {
+    "angular": "1.4.x"
   }
 }
