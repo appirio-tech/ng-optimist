@@ -1,26 +1,26 @@
-{
-  "name": "appirio-tech-optimist",
-  "version": "0.0.0",
-  "description": "Model/Collection helpers",
-  "main": "./dist/main.js",
-  "authors": [
-    ""
-  ],
-  "license": "",
-  "devDependencies": {
-    "angular-mocks": "^1.3.x",
-    "sinon": "http://sinonjs.org/releases/sinon-1.12.1.js",
-    "auto-config-fake-server": "2.x.x",
-    "appirio-tech-api-schemas": "5.x.x",
-    "appirio-tech-ng-work-layout": "1.x.x",
-    "angular-ui-router": "^0.2.x",
-    "bardjs": "^0.1.1"
-  },
-  "dependencies": {
-    "angular": "1.4.x"
-  },
-  "ignore": [
-    "**/*",
-    "!dist/**/*"
-  ]
-}
+// {
+//   "name": "appirio-tech-optimist",
+//   "version": "0.0.0",
+//   "description": "Model/Collection helpers",
+//   "main": "./dist/main.js",
+//   "authors": [
+//     ""
+//   ],
+//   "license": "",
+//   "devDependencies": {
+//     "angular-mocks": "^1.3.x",
+//     "sinon": "http://sinonjs.org/releases/sinon-1.12.1.js",
+//     "auto-config-fake-server": "2.x.x",
+//     "appirio-tech-api-schemas": "5.x.x",
+//     "appirio-tech-ng-work-layout": "1.x.x",
+//     "angular-ui-router": "^0.2.x",
+//     "bardjs": "^0.1.1"
+//   },
+//   "dependencies": {
+//     "angular": "1.4.x"
+//   },
+//   "ignore": [
+//     "**/*",
+//     "!dist/**/*"
+//   ]
+// }
