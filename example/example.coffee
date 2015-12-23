@@ -1,3 +1,4 @@
+
 require 'appirio-tech-api-schemas'
 
 templateCache = ($templateCache) ->

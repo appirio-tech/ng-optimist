@@ -11,5 +11,6 @@
     "build": "webpack --config webpack.config.js; cp example/index.html dist/"
   },
   "dependencies": {
+    "angular": "1.4.x"
   }
 }

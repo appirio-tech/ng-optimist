@@ -1,3 +1,4 @@
+require 'angular'
 require './scripts/optimist.module'
 require './scripts/optimist-collection.service'
 require './scripts/optimist-helpers.service'
