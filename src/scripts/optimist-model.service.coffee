@@ -131,10 +131,7 @@ OptimistModel = (OptimistHelpers) ->
       setPending: true
       updateCallback: updateCallback
 
-    clean   = @getClean()
-    request = apiCall clean
-
-    request.then (response) =>
+    success = (response) =>
       @_data._lastUpdated = OptimistHelpers.timestamp()
 
       if handleResponse
@@ -151,12 +148,16 @@ OptimistModel = (OptimistHelpers) ->
 
       response
 
-    request.catch (err) =>
+    failure = (err) =>
       @set
         updates: updates
         setError: true
         error: err
         restoreBackup: rollbackOnFailure
+
+      throw new Error('Unable to apply updates due to API failure')
+
+    apiCall( @getClean() ).then(success, failure)
 
   Model.prototype.update = (options = {}) ->
     @set
